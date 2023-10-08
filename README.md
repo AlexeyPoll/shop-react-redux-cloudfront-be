@@ -1,0 +1,2 @@
+shop-react-redux-cloudfront-be - backend
+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
