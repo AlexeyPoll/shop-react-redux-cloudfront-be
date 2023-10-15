@@ -1,0 +1,15 @@
+{
+  "name": "shop-react-redux-cloudfront-be",
+  "version": "1.0.0",
+  "description": "shop-react-redux-cloudfront-be - backend",
+  "main": "index.js",
+  "scripts": {
+    "populate-database": "node ./scripts/populate-database.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.428.0",
+    "@aws-sdk/lib-dynamodb": "^3.428.0"
+  }
+}
