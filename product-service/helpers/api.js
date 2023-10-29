@@ -1,6 +1,8 @@
 const headers = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Credentials': true,
+  'Access-Control-Allow-Methods': '*',
+  'Access-Control-Allow-Headers': '*',
 }
 
 const buildSuccessResponse = (data) => {
@@ -11,11 +13,11 @@ const buildSuccessResponse = (data) => {
   }
 }
 
-const buildFailedResponse = (error) => {
+const buildFailedResponse = (error, statusCode = 500) => {
   console.error(error);
 
   return {
-    statusCode: 500,
+    statusCode,
     body: JSON.stringify({ message: error.message }),
     headers
   }

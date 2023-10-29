@@ -1,12 +1,12 @@
 'use strict';
 
-const { products } = require('../data/products')
-const { buildSuccessResponse, buildFailedResponse } = require('../helpers/api')
+const { buildSuccessResponse, buildFailedResponse } = require('../helpers/api');
+const { getProductStockById } = require('../scripts/get-product-stock-by-id');
 
 const getProductsById = async (event) => {
-  const product = products.find(({ id }) => id === event.pathParameters.productId);
-
   try {
+    const product = await getProductStockById(event.pathParameters.productId)
+
     if (!product) {
       throw new Error('The product was not found! Check the ID.')
     }

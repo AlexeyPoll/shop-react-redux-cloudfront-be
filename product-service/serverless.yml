@@ -7,6 +7,15 @@ provider:
   runtime: nodejs18.x
   stage: dev
   region: eu-west-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource:
+        - "arn:aws:dynamodb:${self:provider.region}:*:table/*"
+  environment:
+      PRODUCTS_TABLE: Products
+      STOCKS_TABLE: Stocks
 
 functions:
   getProductsList:
@@ -25,3 +34,10 @@ functions:
             parameters:
               paths:
                 productId: true
+  createProduct:
+    handler: handler.createProduct
+    events:
+      - http:
+          path: product
+          method: put
+          cors: true
