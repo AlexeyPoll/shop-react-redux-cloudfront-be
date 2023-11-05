@@ -1,0 +1,42 @@
+service: import-service
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: dev
+  region: eu-west-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action: 
+        - s3:ListBucket
+      Resource:
+        - arn:aws:s3:::module-5-bucket
+    - Effect: Allow
+      Action:
+        - s3:*
+      Resource:
+        - arn:aws:s3:::module-5-bucket/*
+
+functions:
+  importProductsFile:
+    handler: handler.importProductsFile
+    events:
+      - http:
+          path: import
+          method: get
+          request:
+            parameters:
+              querystrings:
+                name: true
+  importFileParser:
+    handler: handler.importFileParser
+    events:
+      - s3:
+        bucket: module-5-bucket
+        event: s3:ObjectCreated:*
+        rules: 
+          - prefix: uploaded/
+        existing: true
+        forceDeploy: true
