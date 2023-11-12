@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.428.0",
-    "@aws-sdk/lib-dynamodb": "^3.428.0"
+    "@aws-sdk/lib-dynamodb": "^3.428.0",
+    "serverless-dotenv-plugin": "^6.0.0"
   }
 }

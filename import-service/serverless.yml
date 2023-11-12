@@ -33,6 +33,20 @@ resources:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: catalogItemsQueue
+    ApiGatewayRestApi:
+      Type: AWS::ApiGateway::RestApi
+      Properties:
+        Name: dev-epam-aws-import-service-dev
+    GatewayResponseDefault4XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+        ResponseType: "DEFAULT_4XX"
+        RestApiId:
+          Ref: ApiGatewayRestApi
 
 functions:
   importProductsFile:
@@ -41,6 +55,12 @@ functions:
       - http:
           path: import
           method: get
+          authorizer:
+            name: 'tokenAuthorizer'
+            arn: 'arn:aws:lambda:eu-west-1:#{AWS::AccountId}:function:epam-aws-authorization-service-dev-basicAuthorizer'
+            resultTtlInSeconds: 0
+            identitySource: 'method.request.header.Authorization'
+            type: 'token'
           request:
             parameters:
               querystrings:
