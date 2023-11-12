@@ -13,9 +13,30 @@ provider:
         - dynamodb:*
       Resource:
         - "arn:aws:dynamodb:${self:provider.region}:*:table/*"
+    - Effect: Allow
+      Action: "sns:*"
+      Resource:
+        Ref: SNSTopic
+
   environment:
       PRODUCTS_TABLE: Products
       STOCKS_TABLE: Stocks
+      SNS_ARN:
+        Ref: SNSTopic
+
+resources:
+  Resources:
+    SNSTopic: 
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: createProductTopic
+    SNSSubscription: 
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: Aliaksei_Palkhouski@epam.com
+        Protocol: email
+        TopicArn: 
+          Ref: SNSTopic
 
 functions:
   getProductsList:
@@ -41,3 +62,10 @@ functions:
           path: product
           method: put
           cors: true
+  catalogBatchProcess:
+    handler: handler.catalogBatchProcess
+    events:
+      - sqs:
+          batchSize: 5
+          arn: arn:aws:sqs:eu-west-1:073774905306:catalogItemsQueue
+

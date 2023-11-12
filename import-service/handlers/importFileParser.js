@@ -4,19 +4,32 @@ const csvParser = require("csv-parser");
 
 const parseCsv = async (event)=>  {
     const s3 = new AWS.S3({ region: config.region });
+    const sqs = new AWS.SQS({ region: config.region });
 
     try {
         const params = {
-            Bucket: event.Records[0].s3.bucket.name,
-            Key: event.Records[0].s3.object.key,
+            Bucket: event.s3.bucket.name,
+            Key: event.s3.object.key,
         };
 
         await new Promise((resolve, reject) => {
             s3.getObject(params)
                 .createReadStream()
-                .pipe(csvParser())
+                .pipe(csvParser({ separator: ';' }))
                 .on('data', data => {
                     console.info('CSV file row data:', data);
+
+                    sqs.sendMessage({
+                        QueueUrl: process.env.SQS_URL,
+                        MessageBody: JSON.stringify(data),
+                    }, (err) => {
+                        if (err) {
+                            console.log('>>> ERROR:', err.message)
+                        }
+                        
+                        const { title } = data;
+                        console.log('Send message for product: ', title);
+                    })
                 })
                 .on('error', error => {
                     reject(error.message);
@@ -36,28 +49,30 @@ const moveCsv = async (event)=>  {
 
     try {
         await s3.copyObject({
-            Bucket: event.Records[0].s3.bucket.name,
-            CopySource: event.Records[0].s3.bucket.name + '/' + event.Records[0].s3.object.key,
-            Key: event.Records[0].s3.object.key.replace("uploaded", "parsed")
+            Bucket: event.s3.bucket.name,
+            CopySource: event.s3.bucket.name + '/' + event.s3.object.key,
+            Key: event.s3.object.key.replace("uploaded", "parsed")
         })
         .promise();
 
         console.log('File copied to ', "/parsed");
 
         await s3.deleteObject({
-            Bucket: event.Records[0].s3.bucket.name,
-            Key: event.Records[0].s3.object.key
+            Bucket: event.s3.bucket.name,
+            Key: event.s3.object.key
         })
         .promise();
 
-        console.log('Old file deleted', event.Records[0].s3.object.key);
+        console.log('Old file deleted', event.s3.object.key);
     } catch (error) {
         console.log(error.message);
     }
 }
 const importFileParser = async (event) => {
-    await parseCsv(event);
-    await moveCsv(event);
+    for (const record of event.Records) {
+        await parseCsv(record);
+        await moveCsv(record);
+    }
 };
 
 exports.importFileParser = importFileParser;
